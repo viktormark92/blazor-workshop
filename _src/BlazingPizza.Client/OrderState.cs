@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace BlazingPizza.Client
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class OrderState
     {
         public bool ShowingConfigureDialog { get; private set; }
@@ -49,6 +52,11 @@ namespace BlazingPizza.Client
         public void RemoveConfiguredPizza(Pizza pizza)
         {
             Order.Pizzas.Remove(pizza);
+        }
+
+        public void ReplaceOrder(Order order)
+        {
+            Order = order;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="top-bar">
+    @* Add facebook, youtube logos ? with link to account *@
     <a class="logo" href="">
         <img src="img/logo.svg" />
     </a>
@@ -10,12 +11,23 @@
         <div>Get Pizza</div>
     </NavLink>
 
-    <NavLink href="myorders" class="nav-tab">
-        <img src="img/bike.svg" />
-        <div>My Orders</div>
-    </NavLink>
+    <AuthorizeView>
+        <NavLink href="myorders" class="nav-tab">
+            <img src="img/bike.svg" />
+            <div>My Orders</div>
+        </NavLink>
+    </AuthorizeView>
+    @* The My Orders tab should now only be visible when the user is logged in.
+
+        We've now seen two ways to interact with the authentication/authorization system inside components:
+
+        Wrap content in an AuthorizeView. This is useful when you just need to vary some UI content according to authorization status.
+        Place an [Authorize] attribute on a routable component. This is useful if you want to control the reachability of an entire page based on authorization conditions. *@
+
+    <LoginDisplay />
 </div>
 
 <div class="content">
     @Body
 </div>
+

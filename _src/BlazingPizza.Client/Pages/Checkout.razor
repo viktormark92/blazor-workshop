@@ -1,11 +1,15 @@
-﻿@page "/checkout"
+﻿@* By default, all pages allow for anonymous access, but we can specify that the user must be logged in to access the checkout page by 
+    adding the [Authorize] attribute at the top of Checkout.razor: *@
+@attribute [Authorize]
 
-@inject HttpClient HttpClient
+@page "/checkout"
+
+@inject OrdersClient OrdersClient
 @inject OrderState OrderState
 @inject NavigationManager NavigationManager
 
 <div class="main">
-    <EditForm Model="OrderState.Order.DeliveryAddress"  OnValidSubmit="PlaceOrder">
+    <EditForm Model="OrderState.Order.DeliveryAddress" OnValidSubmit="PlaceOrder">
         <div class="checkout-cols">
             <div class="checkout-order-details">
                 ... leave this div unchanged ...
@@ -17,7 +21,7 @@
             </div>
         </div>
 
-        <button type="submit" disabled="@IsSubmitting" class="checkout-button btn btn-warning" >
+        <button type="submit" disabled="@IsSubmitting" class="checkout-button btn btn-warning">
             Place order
         </button>
         <DataAnnotationsValidator />
@@ -29,10 +33,21 @@
     async Task PlaceOrder()
     {
         IsSubmitting = true;
-        var response = await HttpClient.PostAsJsonAsync("orders", OrderState.Order);
-        var newOrderId = await response.Content.ReadFromJsonAsync<int>();
-        OrderState.ResetOrder();
-        NavigationManager.NavigateTo($"myorders/{newOrderId}");
-        IsSubmitting = false;
+        try
+        {
+            var newOrderId = await OrdersClient.PlaceOrder(OrderState.Order);
+            OrderState.ResetOrder();
+            NavigationManager.NavigateTo($"myorders/{newOrderId}");
+        }
+        catch (AccessTokenNotAvailableException ex)
+        {
+            ex.Redirect();
+        }
+        finally
+        {
+
+            IsSubmitting = false;
+        }
     }
+
 }

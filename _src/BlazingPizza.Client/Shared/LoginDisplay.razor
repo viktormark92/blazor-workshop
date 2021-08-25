@@ -1,0 +1,34 @@
+﻿@inject NavigationManager Navigation
+@inject SignOutSessionStateManager SignOutManager
+@* AuthorizeView is a built-in component that displays different
+    content depending on whether the user meets specified authorization conditions.
+    You can use AuthorizeView anywhere you need UI content to vary by authorization state,
+    such as controlling the visibility of menu entries based on a user's roles. In this case, 
+    we're using it to tell the user who they are, and conditionally show either a "log in" or "log out" link as applicable.
+    *@
+<div class="user-info">
+    <AuthorizeView>
+        <Authorizing>
+            <text>Authorizing user...</text>
+        </Authorizing>
+        <Authorized>
+            <img src="img/user.svg" />
+            <div>
+                <a href="authentication/profile" class="username">@context.User.Identity.Name</a>
+                <button class="btn btn-link sign-out" @onclick="BeginSignOut">Sign out</button>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <a class="sign-in" href="authentication/register">Register</a>
+            <a class="sign-in" href="authentication/login">Log in</a>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code{
+    async Task BeginSignOut()
+    {
+        await SignOutManager.SetSignOutState();
+        Navigation.NavigateTo("authentication/logout");
+    }
+}

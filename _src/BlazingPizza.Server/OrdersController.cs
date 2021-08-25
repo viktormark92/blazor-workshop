@@ -3,16 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlazingPizza.Server
 {
+    /// <summary>
+    /// This is the controller class that handles incoming HTTP requests for /orders and /orders/{orderId}
+    /// </summary>
     [Route("orders")]
     [ApiController]
-    // [Authorize]
+    [Authorize]
     public class OrdersController : Controller
     {
+        //Authorize Enforce rules about who's allowed to do what.
+        //require that all requests to these endpoints come from 
+        //authenticated users (i.e., people who have logged in), add the [Authorize] attribute to the OrdersController class:
         private readonly PizzaStoreContext _db;
 
         public OrdersController(PizzaStoreContext db)
@@ -23,8 +30,10 @@ namespace BlazingPizza.Server
         [HttpGet]
         public async Task<ActionResult<List<OrderWithStatus>>> GetOrders()
         {
+            //Although the server requires authentication before accepting queries for order information, it still doesn't 
+            //distinguish between users. All signed-in users can see the orders from all other signed-in users. We have authentication, but no authorization!
             var orders = await _db.Orders
-                // .Where(o => o.UserId == GetUserId())
+                .Where(o => o.UserId == GetUserId())
                 .Include(o => o.DeliveryLocation)
                 .Include(o => o.Pizzas).ThenInclude(p => p.Special)
                 .Include(o => o.Pizzas).ThenInclude(p => p.Toppings).ThenInclude(t => t.Topping)
@@ -37,9 +46,10 @@ namespace BlazingPizza.Server
         [HttpGet("{orderId}")]
         public async Task<ActionResult<OrderWithStatus>> GetOrderWithStatus(int orderId)
         {
+            //Where to UserId is important to get the products/orders belongs to current logged in user.
             var order = await _db.Orders
                 .Where(o => o.OrderId == orderId)
-                // .Where(o => o.UserId == GetUserId())
+                .Where(o => o.UserId == GetUserId())
                 .Include(o => o.DeliveryLocation)
                 .Include(o => o.Pizzas).ThenInclude(p => p.Special)
                 .Include(o => o.Pizzas).ThenInclude(p => p.Toppings).ThenInclude(t => t.Topping)
@@ -60,7 +70,7 @@ namespace BlazingPizza.Server
 
             order.CreatedTime = DateTime.Now;
             order.DeliveryLocation = new LatLong(51.5001, -0.1239);
-            // order.UserId = GetUserId();
+            order.UserId = GetUserId();
 
             // Enforce existence of Pizza.SpecialId and Topping.ToppingId
             // in the database - prevent the submitter from making up
