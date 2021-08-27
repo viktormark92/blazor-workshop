@@ -1,4 +1,4 @@
-﻿@* By default, all pages allow for anonymous access, but we can specify that the user must be logged in to access the checkout page by 
+﻿@* By default, all pages allow for anonymous access, but we can specify that the user must be logged in to access the checkout page by
     adding the [Authorize] attribute at the top of Checkout.razor: *@
 @attribute [Authorize]
 
@@ -7,6 +7,7 @@
 @inject OrdersClient OrdersClient
 @inject OrderState OrderState
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <div class="main">
     <EditForm Model="OrderState.Order.DeliveryAddress" OnValidSubmit="PlaceOrder">
@@ -30,6 +31,7 @@
 
 @code {
     protected bool IsSubmitting { get; set; }
+
     async Task PlaceOrder()
     {
         IsSubmitting = true;
@@ -47,6 +49,28 @@
         {
 
             IsSubmitting = false;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // In the background, ask if they want to be notified about order updates
+        _ = RequestNotificationSubscriptionAsync();
+    }
+
+    async Task RequestNotificationSubscriptionAsync()
+    {
+        var subscription = await JSRuntime.InvokeAsync<NotificationSubscription>("blazorPushNotifications.requestSubscription");
+        if (subscription != null)
+        {
+            try
+            {
+                await OrdersClient.SubscribeToNotifications(subscription);
+            }
+            catch (AccessTokenNotAvailableException ex)
+            {
+                ex.Redirect();
+            }
         }
     }
 
