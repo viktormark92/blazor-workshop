@@ -22,6 +22,6 @@ https://github.com/dotnet-presentations/blazor-workshop
       
     
 8. 07-javascript-interop.md  ✔
-9. 08-templated-components.md
+9. 08-templated-components.md  ✔
 10. 09-progressive-web-app.md
 11. 10-publish-and-deploy.md
